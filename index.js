@@ -1,7 +1,7 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
-require('dotenv').config()
-const express = require('express');
-const cors = require('cors');
+const { MongoClient, ServerApiVersion } = require("mongodb");
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -24,7 +24,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -33,8 +33,29 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-} finally {
+
+    const coffeesCollection = client.db("coffeeDB").collection("coffees");
+
+    // coffee er data niye asbo
+    app.get('/coffees',async(req,res)=>{
+      const cursor = coffeesCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    
+
+    app.post("/coffees", async (req, res) => {
+      const newCoffee = req.body;
+      console.log(newCoffee);
+      const result = await coffeesCollection.insertOne(newCoffee);
+      res.send(result);
+    });
+
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+  } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
@@ -43,11 +64,10 @@ run().catch(console.dir);
 
 // mongoDB end
 
+app.get("/", (req, res) => {
+  res.send("Coffee server is getting hotter");
+});
 
-app.get('/',(req,res)=>{
-    res.send('Coffee server is getting hotter');
-})
-
-app.listen(port,()=>{
-    console.log(`Coffee app listening on port ${port}`);
-})
+app.listen(port, () => {
+  console.log(`Coffee app listening on port ${port}`);
+});
